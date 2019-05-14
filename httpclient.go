@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,10 +12,10 @@ import (
 func main() {
 
 	//resp, _ := doGet("https://www.baidu.com")
-	resp, _ := doPost("http://www.baidu.com", "application/json;charset=utf-8")
+	resp, _ := doPost("https://www.cwmpd.com:8443/wifi/acs", "text/plain;charset=utf-8")
 	//resp, _ := doPostForm("http://www.baidu.com")
 	defer resp.Body.Close() //go的特殊语法，main函数执行结束前会执行resp.Body.Close()
-
+	http.FileServer(http.Dir("/mnt"))
 	fmt.Println(resp.StatusCode)          //有http的响应码输出
 	if resp.StatusCode == http.StatusOK { //如果响应码为200
 		body, err := ioutil.ReadAll(resp.Body) //把响应的body读出
@@ -48,8 +49,10 @@ type Mafdsadf struct {
 }
 
 func (I *Mafdsadf) Read(p []byte) (n int, err error) {
-	p = []byte("this is ok")
-	return 10, nil
+	p, _ = ioutil.ReadFile("jiang.txt")
+	fmt.Println(string(p))
+	//p = []byte("this is ok")
+	return len(p), nil
 
 }
 
@@ -61,8 +64,11 @@ text/plain
 */
 
 func doPost(url string, bodyType string) (r *http.Response, e error) {
-
-	resp, err := http.Post(url, bodyType, &Mafdsadf{})
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Post(url, bodyType, &Mafdsadf{})
 
 	if err != nil {
 		fmt.Println(resp.StatusCode)
