@@ -4,7 +4,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -106,7 +108,49 @@ var msg = `{
     }
 }`
 
+var msg1 = `{
+    "name": "get",
+    "version": "1.0.0",
+    "serialnumber": "78A351323857",
+    "keyname": "inform",
+    "packet": {
+        "black_mac": "1",
+        "white_mac": "1",
+        "black_url": "1",
+        "white_url": "1"
+    }
+}`
+
 var deviceId = "78A351323857"
+
+type B struct {
+	Keyname string `json:"keyname"`
+	Name    string `json:"name"`
+	Packet  struct {
+		InternetGatewayDevice_DeviceInfo_HardwareVersion      string `json:"InternetGatewayDevice.DeviceInfo.HardwareVersion"`
+		InternetGatewayDevice_DeviceInfo_Manufacturer         string `json:"InternetGatewayDevice.DeviceInfo.Manufacturer"`
+		InternetGatewayDevice_DeviceInfo_ProductClass         string `json:"InternetGatewayDevice.DeviceInfo.ProductClass"`
+		InternetGatewayDevice_DeviceInfo_SoftwareVersion      string `json:"InternetGatewayDevice.DeviceInfo.SoftwareVersion"`
+		InternetGatewayDevice_DeviceInfo_UpTime               string `json:"InternetGatewayDevice.DeviceInfo.UpTime"`
+		InternetGatewayDevice_DeviceInfo_clientSpeed          string `json:"InternetGatewayDevice.DeviceInfo.client_speed"`
+		InternetGatewayDevice_DeviceInfo_cpuUtilization       string `json:"InternetGatewayDevice.DeviceInfo.cpu_utilization"`
+		InternetGatewayDevice_DeviceInfo_flashUtilization     string `json:"InternetGatewayDevice.DeviceInfo.flash_utilization"`
+		InternetGatewayDevice_DeviceInfo_memoryUtilization    string `json:"InternetGatewayDevice.DeviceInfo.memory_utilization"`
+		InternetGatewayDevice_DeviceInfo_wanCurrentIPAddr     string `json:"InternetGatewayDevice.DeviceInfo.wan_current_ip_addr"`
+		InternetGatewayDevice_DeviceInfo_workMode             string `json:"InternetGatewayDevice.DeviceInfo.work_mode"`
+		InternetGatewayDevice_LANDevice_1_Wireless_WiFiClient []struct {
+			Host string `json:"host"`
+			IP   string `json:"ip"`
+			Mac  string `json:"mac"`
+			Type string `json:"type"`
+		} `json:"InternetGatewayDevice.LANDevice.1.Wireless.WiFiClient"`
+		ManufaInternetGatewayDevice_DeviceInfo_cturerOUI string `json:"ManufaInternetGatewayDevice.DeviceInfo.cturerOUI"`
+		SerialNumber                                     string `json:"SerialNumber"`
+		DevType                                          string `json:"dev_type"`
+	} `json:"packet"`
+	Serialnumber string `json:"serialnumber"`
+	Version      string `json:"version"`
+}
 
 func sendCommand() {
 	time.Sleep(time.Second * 5)
@@ -119,15 +163,31 @@ func sendCommand() {
 	p1, _ := net.Dial("udp", value)
 	fmt.Sprintf(msg, deviceId)
 	fmt.Println(msg)
-	p1.Write([]byte(msg))
+	p1.Write([]byte(msg1))
 }
 
 var returnstring = `{"name":"informResponse","version":"1.0.0","serialnumber":"78A351323857","keyname":"inform","packet":{"serialnumber":"78A351323857"}}`
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	buf, _ := ioutil.ReadAll(r.Body)
+	//	fmt.Println(string(buf))
+	var bb = &B{}
+	json.Unmarshal(buf, bb)
+	fmt.Println(bb.Keyname)
+	fmt.Fprintf(w, "Hi, This is an example of http service in golang!")
+}
+
+func httpmain() {
+	http.HandleFunc("/wifi/acsjson", handler)
+	http.ListenAndServe(":8081", nil)
+}
+
 func main() {
 	b1 := make([]byte, 2048)
 	b2 := A{}
+	go httpmain()
 	go sendCommand()
+
 	p1, _ := net.ResolveUDPAddr("udp", ":8880")
 	d1, _ := net.ListenUDP("udp", p1)
 	for {
