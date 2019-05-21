@@ -52,7 +52,7 @@ type A struct {
 }
 
 func insert(addr string, value string) {
-	c, err := redis.Dial("tcp", "127.0.0.1:6379")
+	c, err := redis.Dial("tcp", "192.168.3.242:6379")
 	if err != nil {
 		fmt.Println("conn redis failed,", err)
 	}
@@ -78,7 +78,7 @@ func insert(addr string, value string) {
 }
 
 func get(addr string) (int, string) {
-	c, err := redis.Dial("tcp", "127.0.0.1:6379")
+	c, err := redis.Dial("tcp", "192.168.3.242:6379")
 	if err != nil {
 		fmt.Println("conn redis failed,", err)
 	}
@@ -140,7 +140,9 @@ func main() {
 			json.Unmarshal(b1[0:n1], &b2)
 			insert(b2.Serialnumber, adr.String())
 			fmt.Println(b2.Serialnumber, b2.Packet.HardwareVersion, adr.String())
-			d1.Write([]byte(returnstring))
+			p1, _ := net.Dial("udp", adr)
+
+			p1.Write([]byte(returnstring))
 		}
 	}
 	fmt.Println("Hello World!")
