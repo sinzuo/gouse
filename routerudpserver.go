@@ -140,7 +140,7 @@ func main() {
 			json.Unmarshal(b1[0:n1], &b2)
 			insert(b2.Serialnumber, adr.String())
 			fmt.Println(b2.Serialnumber, b2.Packet.HardwareVersion, adr.String())
-			p1, _ := net.Dial("udp", adr)
+			p1, _ := net.Dial("udp", adr.String())
 
 			p1.Write([]byte(returnstring))
 		}
