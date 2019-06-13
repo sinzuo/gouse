@@ -1,6 +1,10 @@
 go tools
 https://mritd.me/2018/11/27/simple-tool-written-in-golang/
 
+xuexi vue 
+https://www.javascriptcn.com/vue2/vue-tutorial.html
+
+
 go cmd
 https://github.com/gookit/gcli
 
